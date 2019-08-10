@@ -107,6 +107,7 @@ public class MainScreen {
 	public JTextField cell87;
 	public JTextField cell88;
 	
+	@SuppressWarnings("unchecked")
 	List<JTextField> cells = new ArrayList();
 	int[][] sudoku = new int[9][9];
 	
@@ -122,7 +123,6 @@ public class MainScreen {
 		
 		for(int i=0; i<cells.size(); i++) {
 			String val = cells.get(i).getText();
-			System.out.println(val);
 			if (val.isEmpty()) {
 				sudoku[row][col] = 0;
 			}else {
@@ -210,6 +210,7 @@ public class MainScreen {
 				if(checkElement(nextZero[0], nextZero[1], tryingNum) == true) {
 					sudoku[nextZero[0]][nextZero[1]] = tryingNum;
 						if(solve() == true) {
+							displayCurrent();
 							return true;
 						}
 					}
@@ -220,18 +221,8 @@ public class MainScreen {
 	}
 	
 	public void generate() {
-		clear();
-		Random rand = new Random();
-		List<Integer> options = new ArrayList<>();
-		for(int i=0; i<10; i++) {
-			options.add(i);
-		}
-		for(int i=0; i<9; i++) {
-			int randIdx = rand.nextInt(options.size());
-			sudoku[i][i] = options.get(randIdx);
-			options.remove(randIdx);
-		}
 		solve();
+		displayCurrent();
 	}
 
 	/**
@@ -303,6 +294,11 @@ public class MainScreen {
 			public void actionPerformed(ActionEvent arg0) {
 				getPuzzle();
 				solve();
+				if(nextZeroCell()[0] == -1) {
+					JOptionPane.showMessageDialog(null, "The puzzle has been solved.");
+				}else {
+					JOptionPane.showMessageDialog(null, "The puzzle cannot be solved. Check your entries.");
+				}
 			}
 		});
 		btnNewButton.setBounds(32, 30, 102, 25);
@@ -318,6 +314,11 @@ public class MainScreen {
 		leftBar.add(btnNewButton_1);
 		
 		JButton btnGenerate = new JButton("Generate");
+		btnGenerate.addActionListener(new ActionListener() {;
+			public void actionPerformed(ActionEvent arg0) {
+				generate();
+			}
+		});
 		btnGenerate.setBounds(32, 98, 102, 25);
 		leftBar.add(btnGenerate);
 		
