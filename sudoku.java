@@ -19,6 +19,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.awt.event.ActionEvent;
 
 public class MainScreen {
@@ -107,15 +108,15 @@ public class MainScreen {
 	public JTextField cell88;
 	
 	List<JTextField> cells = new ArrayList();
+	int[][] sudoku = new int[9][9];
 	
 	public void clear() {
 		
 		cells.forEach(cell->cell.setText(""));
 	}
 	
-	public int[][] getPuzzle() {
+	public void getPuzzle() {
 		
-		int[][] sudoku = new int[9][9];
 		int col = 0;
 		int row = 0;
 		
@@ -134,10 +135,9 @@ public class MainScreen {
 				col++;
 			}
 		}		
-		return sudoku;
 	}
 	
-	public boolean checkRow(int row, int number, int[][] sudoku) { 
+	public boolean checkRow(int row, int number) { 
 		for(int i=0; i<9; i++) {
 			if(sudoku[row][i] == number) {
 				return false;
@@ -146,7 +146,7 @@ public class MainScreen {
 		return true;
 	}
 	
-	public boolean checkCol(int col, int number, int[][] sudoku) {
+	public boolean checkCol(int col, int number) {
 		for(int i=0; i<9; i++) {
 			if(sudoku[i][col] == number) {
 				return false;
@@ -155,10 +155,10 @@ public class MainScreen {
 		return true;
 	}
 	
-	public boolean checkBox(int row, int col, int number, int[][] sudoku) {
+	public boolean checkBox(int row, int col, int number) {
 		int startRow = row - (row % 3);
 		int startCol = col - (col % 3);
-		for(int i=0; i<3) {
+		for(int i=0; i<3; i++) {
 			for(int j=0; j<3; j++) {
 				if(sudoku[startRow + i][startCol + j] == number) {
 					return false;
@@ -168,13 +168,13 @@ public class MainScreen {
 		return true;
 	}
 	
-	public boolean checkElement(int row, int col, int num, int[][] sudoku) {
-		return checkRow(row, num, sudoku) && checkCol(col, num, sudoku) && checkBox(row, col, num, sudoku);
+	public boolean checkElement(int row, int col, int num) {
+		return checkRow(row, num) && checkCol(col, num) && checkBox(row, col, num);
 	}
 	
-	public int[] nextZeroCell(int[][] sudoku){
+	public int[] nextZeroCell(){
 		int[] nextZero = new int[2];
-		
+		nextZero[0] = -1;		
 		for(int i=0; i<9; i++) {
 			for(int j=0; j<9; j++) {
 				if(sudoku[i][j] == 0) {
@@ -183,13 +183,55 @@ public class MainScreen {
 					return nextZero;
 				}
 			}
-			return null;
-		}		
+		}	
 		return nextZero;
 	}
 	
-	public void solve(int[][] sudoku) {
-		int[] nextZero = nextZeroCell(sudoku);		
+	public void displayCurrent() {
+		int row = 0;
+		int col = 0;
+		for (int i=0; i<cells.size(); i++) {
+			cells.get(i).setText(Integer.toString(sudoku[row][col]));
+			if(col == 8) {
+				row++;
+				col = 0;
+			}else {
+				col++;
+			}			
+		}
+	}
+	
+	public boolean solve() {
+		int[] nextZero = nextZeroCell();
+		if(nextZero[0] == -1) {
+			return true;
+		}else{
+			for(int tryingNum=1; tryingNum<10; tryingNum++) {
+				if(checkElement(nextZero[0], nextZero[1], tryingNum) == true) {
+					sudoku[nextZero[0]][nextZero[1]] = tryingNum;
+						if(solve() == true) {
+							return true;
+						}
+					}
+				sudoku[nextZero[0]][nextZero[1]] = 0;
+				}
+			}
+		return false;
+	}
+	
+	public void generate() {
+		clear();
+		Random rand = new Random();
+		List<Integer> options = new ArrayList<>();
+		for(int i=0; i<10; i++) {
+			options.add(i);
+		}
+		for(int i=0; i<9; i++) {
+			int randIdx = rand.nextInt(options.size());
+			sudoku[i][i] = options.get(randIdx);
+			options.remove(randIdx);
+		}
+		solve();
 	}
 
 	/**
@@ -260,6 +302,7 @@ public class MainScreen {
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				getPuzzle();
+				solve();
 			}
 		});
 		btnNewButton.setBounds(32, 30, 102, 25);
